@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="colorPrimary">@color/blue_dark</color>
+    <color name="colorPrimaryDark">@color/blue_dark</color>
+    <color name="colorAccent">@color/blue_default</color>
+
+    <color name="blue_default">#008ab9</color>
+    <color name="blue_dark">#005e7e</color>
+    <!--淡钢蓝色-->
+    <color name="blue_light_steel">#B0C4DE</color>
+
+    <color name="white">#ffffff</color>
+    <color name="black">#000000</color>
+
+    <color name="grey">#e2e2e2</color>
+</resources>

@@ -1,0 +1,141 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+
+    <com.bluetooth.connection.BlueView
+        android:id="@+id/bv_device_chart"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:degreeHeight="2"/>
+
+    <TextView
+        android:id="@+id/tv_device_tag"
+        style="@style/tv_default"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="right"
+        android:padding="@dimen/default_padding_half"
+        android:text="设备标识:"
+        android:textSize="@dimen/textsize_small_small"/>
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="horizontal">
+
+            <RadioGroup
+                android:id="@+id/rg_device_choice"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="3"
+                android:orientation="vertical">
+
+                <RadioButton
+                    android:id="@+id/rbtn_device_acc"
+                    style="@style/tv_default"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:buttonTint="@color/colorAccent"
+                    android:checked="true"
+                    android:text="ACC加速度(mg)"/>
+
+                <RadioButton
+                    android:id="@+id/rbtn_device_mag"
+                    style="@style/tv_default"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:buttonTint="@color/colorAccent"
+                    android:text="MAG 磁场(μΤ)"/>
+
+                <RadioButton
+                    android:id="@+id/rbtn_device_gyro"
+                    style="@style/tv_default"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:buttonTint="@color/colorAccent"
+                    android:text="GYRO角速度(º／s)"/>
+
+
+                <RadioButton
+                    android:id="@+id/rbtn_device_eul"
+                    style="@style/tv_default"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:buttonTint="@color/colorAccent"
+                    android:text="EUL 欧拉角(º)"/>
+
+                <RadioButton
+                    android:id="@+id/rbtn_device_qua"
+                    style="@style/tv_default"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:buttonTint="@color/colorAccent"
+                    android:text="QUA "/>
+
+                <RadioButton
+                    android:id="@+id/rbtn_device_lacc"
+                    style="@style/tv_default"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:buttonTint="@color/colorAccent"
+                    android:text="LACC线性加速度(mg)"/>
+
+                <RadioButton
+                    android:id="@+id/rbtn_device_grv"
+                    style="@style/tv_default"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:buttonTint="@color/colorAccent"
+                    android:text="GRV重力加速度(mg)"/>
+
+            </RadioGroup>
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="2"
+                android:orientation="vertical">
+
+
+                <CheckBox
+                    android:id="@+id/cbtn_device_x"
+                    style="@style/tv_default"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:buttonTint="@color/colorAccent"
+                    android:checked="true"
+                    android:text="X 数据1"/>
+
+                <CheckBox
+                    android:id="@+id/cbtn_device_y"
+                    style="@style/tv_default"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:buttonTint="@color/colorAccent"
+                    android:checked="true"
+                    android:text="Y 数据1"/>
+
+                <CheckBox
+                    android:id="@+id/cbtn_device_z"
+                    style="@style/tv_default"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:buttonTint="@color/colorAccent"
+                    android:checked="true"
+                    android:text="Z 数据1"/>
+
+            </LinearLayout>
+
+        </LinearLayout>
+
+    </ScrollView>
+
+</LinearLayout>

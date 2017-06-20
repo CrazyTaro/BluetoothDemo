@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+
+    <ScrollView
+        xmlns:android="http://schemas.android.com/apk/res/android"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:visibility="visible">
+
+        <LinearLayout
+            xmlns:android="http://schemas.android.com/apk/res/android"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <EditText
+                android:id="@+id/et_input_device"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="过滤显示的设备,可填写部分地址或者是设备名称,回车确定"
+                android:singleLine="true"
+                android:text="Simple"
+                android:textSize="12sp"/>
+
+            <com.bluetooth.connection.BlueView
+                android:id="@+id/bv_ui_first"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"/>
+
+            <TextView
+                android:id="@+id/tv_device_first"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="连接设备说明"
+                android:padding="10dp"
+                android:textSize="12sp"/>
+
+            <com.bluetooth.connection.BlueView
+                android:id="@+id/bv_ui_second"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"/>
+
+            <TextView
+                android:id="@+id/tv_device_second"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="连接设备说明"
+                android:padding="10dp"
+                android:textSize="12sp"/>
+
+            <com.bluetooth.connection.BlueView
+                android:id="@+id/bv_ui_z"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"/>
+
+            <TextView
+                android:id="@+id/tv_device_z"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="Z轴计算数据说明"
+                android:padding="10dp"
+                android:textSize="12sp"/>
+
+            <TextView
+                android:id="@+id/tv_device_compare"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:padding="10dp"
+                android:textSize="12sp"/>
+
+            <Button
+                android:id="@+id/btn_update_value"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="更新Z值信息"/>
+
+            <Button
+                android:id="@+id/btn_update_device"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="更新连接设备信息"/>
+
+
+            <Button
+                android:id="@+id/btn_restart_scan"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="开始扫描"/>
+
+            <Button
+                android:id="@+id/btn_stop_all_notify"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="取消全部通知"/>
+
+            <Button
+                android:id="@+id/btn_start_all_notify"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="开始全部通知"/>
+
+            <Button
+                android:id="@+id/btn_stop_update"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="暂停界面更新"/>
+
+            <Button
+                android:id="@+id/btn_clear_all"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="清除所有数据"/>
+
+        </LinearLayout>
+    </ScrollView>
+
+</LinearLayout>

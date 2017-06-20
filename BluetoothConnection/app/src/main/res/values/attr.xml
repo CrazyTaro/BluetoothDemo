@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <attr name="degreeHeight" format="integer"/>
+    <attr name="timeUnitWidth" format="integer"/>
+    <attr name="showX" format="boolean"/>
+    <attr name="showY" format="boolean"/>
+    <attr name="showZ" format="boolean"/>
+
+    <declare-styleable name="BlueView">
+        <attr name="degreeHeight"/>
+        <attr name="timeUnitWidth"/>
+        <attr name="showX"/>
+        <attr name="showY"/>
+        <attr name="showZ"/>
+    </declare-styleable>
+</resources>
