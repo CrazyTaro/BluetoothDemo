@@ -61,7 +61,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:buttonTint="@color/colorAccent"
-                    android:text="GYRO角速度(º／s)"/>
+                    android:text="GYR角速度(º／s)"/>
 
 
                 <RadioButton

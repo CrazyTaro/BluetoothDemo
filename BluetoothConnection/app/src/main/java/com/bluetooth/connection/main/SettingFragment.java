@@ -124,7 +124,7 @@ public class SettingFragment extends BaseFragment implements View.OnClickListene
                     //关闭硬件
                     //再延时断开所有连接(不管是否成功关闭)
                     sendCmd(new byte[]{0x00});
-                    mHandler.sendEmptyMessageDelayed(0x119, 2000);
+                    mHandler.sendEmptyMessageDelayed(0x119, 5000);
                     break;
                 case R.id.tv_setting_start:
                     //开始扫描
