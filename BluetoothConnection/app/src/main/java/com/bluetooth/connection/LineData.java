@@ -1,6 +1,8 @@
 package com.bluetooth.connection;
 
 
+import android.support.annotation.NonNull;
+
 /**
  * Created by taro on 2017/6/19.
  */
@@ -8,6 +10,7 @@ package com.bluetooth.connection;
 public class LineData {
     public float[][] mData;
     public int mExtra;
+
     private long mTime;
     private int mGroupType;
 
@@ -34,6 +37,9 @@ public class LineData {
                 //温度
             case BluetoothHelper.TYPE_EXTRA_TEMPERATURE:
                 return BluetoothHelper.TYPE_GROUP_0F;
+            //夹角
+            case BluetoothHelper.TYPE_DATA_INCLUDED_ANGLE:
+                return BluetoothHelper.TYPE_GROUP_ANGLE;
             default:
                 return -1;
 
@@ -91,6 +97,8 @@ public class LineData {
                 case BluetoothHelper.TYPE_DATA_GYR:
                 case BluetoothHelper.TYPE_DATA_QUA:
                 case BluetoothHelper.TYPE_DATA_LIA:
+                    //夹角,x,y,z的位置分别存放 夹角/角度1/角度2
+                case BluetoothHelper.TYPE_DATA_INCLUDED_ANGLE:
                     dataIndex = 0;
                     break;
                 case BluetoothHelper.TYPE_DATA_MAG:
@@ -144,6 +152,8 @@ public class LineData {
             case BluetoothHelper.TYPE_DATA_LIA:
             case BluetoothHelper.TYPE_EXTRA_TEMPERATURE:
                 return mGroupType == BluetoothHelper.TYPE_GROUP_0F;
+            case BluetoothHelper.TYPE_DATA_INCLUDED_ANGLE:
+                return mGroupType == BluetoothHelper.TYPE_GROUP_ANGLE;
             default:
                 return false;
 
@@ -161,16 +171,59 @@ public class LineData {
                 mData = new float[2][3];
                 break;
             case BluetoothHelper.TYPE_GROUP_0D:
-                mData = new float[3][3];
+                mData = new float[2][3];
                 break;
             case BluetoothHelper.TYPE_GROUP_0E:
+                //多了个W轴
                 mData = new float[1][4];
                 break;
             case BluetoothHelper.TYPE_GROUP_0F:
-                mData = new float[3][3];
+                mData = new float[2][3];
+                break;
+            case BluetoothHelper.TYPE_GROUP_ANGLE:
+                mData = new float[1][3];
                 break;
         }
         mGroupType = groupType;
+    }
+
+    /**
+     * 获取当前数据中每组数据的最大值(取正数)
+     *
+     * @param out
+     * @return
+     */
+    public boolean getMaxValue(@NonNull float[] out) {
+        //夹角
+        if (mGroupType == BluetoothHelper.TYPE_GROUP_ANGLE) {
+            out[0] = mData[0][0];
+            return true;
+        }
+        //非夹角
+        if (mData == null || out.length < mData.length) {
+            return false;
+        } else {
+            for (int i = 0; i < mData.length; i++) {
+                out[i] = computeMaxValue(mData[i]);
+            }
+            return true;
+        }
+    }
+
+    /**
+     * 计算一组数据中的最大值,取绝对值比较
+     *
+     * @param values
+     * @return
+     */
+    private float computeMaxValue(float[] values) {
+        float i = Float.MIN_VALUE;
+        for (float value : values) {
+            if (Math.abs(value) > i) {
+                i = Math.abs(value);
+            }
+        }
+        return i;
     }
 
     /**
