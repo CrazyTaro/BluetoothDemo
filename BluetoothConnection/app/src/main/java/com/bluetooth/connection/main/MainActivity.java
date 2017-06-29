@@ -21,8 +21,8 @@ import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.widget.Toast;
 
-import com.bluetooth.GroupData;
 import com.bluetooth.connection.BluetoothHelper;
+import com.bluetooth.connection.GroupData;
 import com.bluetooth.connection.LineData;
 import com.bluetooth.connection.R;
 import com.bluetooth.connection.Test;
@@ -36,6 +36,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
+import static com.bluetooth.connection.BluetoothHelper.TYPE_GROUP_ANGLE;
+
 /**
  * Created by taro on 2017/6/13.
  */
@@ -46,6 +48,7 @@ public class MainActivity extends AppCompatActivity {
 
     ArrayMap<String, GroupData> mDataMap;
     ArrayMap<String, Integer> mIndexAddrMap;
+    GroupData mAngleData;
     boolean mIsBlueReady;
     boolean mIsUpdateUi;
     MainFragmentPageAdapter mPageAdapter;
@@ -74,7 +77,7 @@ public class MainActivity extends AppCompatActivity {
         mDataMap = new ArrayMap<>(2);
         mIndexAddrMap = new ArrayMap<>(2);
 
-        BluetoothManager manager = (BluetoothManager) getSystemService(BLUETOOTH_SERVICE);
+        final BluetoothManager manager = (BluetoothManager) getSystemService(BLUETOOTH_SERVICE);
         BluetoothAdapter mBluetoothAdapter = manager.getAdapter();
         if (mBluetoothAdapter == null || !mBluetoothAdapter.isEnabled()) {
             Intent intent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
@@ -109,17 +112,52 @@ public class MainActivity extends AppCompatActivity {
                                 mIndexAddrMap.put(addr, page);
                                 index = page;
                             }
+
+                            //设备界面数据变化更新
                             BaseFragment fragment = mPageAdapter.getItem(index);
                             if (mIsUpdateUi && fragment != null) {
                                 fragment.setDeviceTag(addr);
                                 fragment.notifyDataSetChanged(addr, group, data);
+                            }
+
+                            //夹角界面数据变化更新
+                            if (data.getGroupType() == BluetoothHelper.TYPE_GROUP_0D) {
+                                float[] angle1 = null;
+                                float[] angle2 = null;
+                                //获取第一个设备数据
+                                group = mDataMap.valueAt(0);
+                                if (group != null) {
+                                    angle1 = group.getLastLineData(BluetoothHelper.TYPE_GROUP_0D).getAxisValue(BluetoothHelper.TYPE_DATA_EUL);
+                                }
+                                //获取第二个设备数据
+                                group = mDataMap.valueAt(1);
+                                if (group != null) {
+                                    angle2 = group.getLastLineData(BluetoothHelper.TYPE_GROUP_0D).getAxisValue(BluetoothHelper.TYPE_DATA_EUL);
+                                }
+                                //数据有效则计算夹角
+                                if (angle1 != null && angle2 != null) {
+                                    LineData angleLine = BluetoothHelper.computeLineAngle(angle1, angle2);
+                                    if (mAngleData == null) {
+                                        mAngleData = new GroupData();
+                                    }
+                                    //保存计算结果
+                                    mAngleData.addNewData(TYPE_GROUP_ANGLE, angleLine);
+
+                                    //通知界面更新
+                                    BaseFragment angleFragment = mPageAdapter.getItem(3);
+                                    if (angleFragment != null) {
+                                        angleFragment.notifyDataSetChanged("angle", mAngleData, angleLine);
+                                    }
+                                }
                             }
                         }
                     }
 
                     @Override
                     public boolean onWriteCallback(String addr, String serviceId, String characterId, byte[] value, boolean isSuccess) {
-                        Log.e("ble", addr + "|写入0x" + BluetoothHelper.bytesToHex(value) + (isSuccess ? "成功" : "失败"));
+//                        Log.e("ble", addr + "|写入0x" + BluetoothHelper.bytesToHex(value) + (isSuccess ? "成功" : "失败"));
+                        Toast.makeText(MainActivity.this, String.format("设备:%s 写入指令 0x%s %s", addr, BluetoothHelper.bytesToHex(value), (isSuccess ? "成功" : "失败")),
+                                Toast.LENGTH_LONG).show();
                         return true;
                     }
                 });
@@ -129,7 +167,7 @@ public class MainActivity extends AppCompatActivity {
                     public boolean isDeviceValid(BluetoothDevice device, int rssi, byte[] scanRecord) {
                         String name = device.getName();
                         String addr = device.getAddress();
-                        return name != null && name.contains("Yiwei") && (addr.contains(":95") || addr.contains(":45"));
+                        return name != null && name.contains("Yiwei");
                     }
 
                     @Override
