@@ -122,9 +122,9 @@ public class SettingFragment extends BaseFragment implements View.OnClickListene
             switch (v.getId()) {
                 case R.id.iv_setting_switch:
                     //关闭硬件
-                    //先断开所有连接
-                    BleService.getInstance().releaseAllDevices();
+                    //再延时断开所有连接(不管是否成功关闭)
                     sendCmd(new byte[]{0x00});
+                    mHandler.sendEmptyMessageDelayed(0x119, 2000);
                     break;
                 case R.id.tv_setting_start:
                     //开始扫描
@@ -164,29 +164,39 @@ public class SettingFragment extends BaseFragment implements View.OnClickListene
     private class UpdateHandler extends Handler {
         @Override
         public void handleMessage(Message msg) {
-            Map<String, GroupData> dataMap = mMainAct.getDeviceDatas();
-            for (Map.Entry<String, GroupData> entry : dataMap.entrySet()) {
-                String addr = entry.getKey();
-                GroupData group = entry.getValue();
-                int index = mMainAct.getDeviceIndex(addr);
-                int battery = 0, temp = 0;
-                if (group != null) {
-                    battery = group.getBattery();
-                    temp = group.getTemperature();
-                }
+            switch (msg.what) {
+                case 0x110:
+                    Map<String, GroupData> dataMap = mMainAct.getDeviceDatas();
+                    for (Map.Entry<String, GroupData> entry : dataMap.entrySet()) {
+                        String addr = entry.getKey();
+                        GroupData group = entry.getValue();
+                        int index = mMainAct.getDeviceIndex(addr);
+                        int battery = 0, temp = 0;
+                        if (group != null) {
+                            battery = group.getBattery();
+                            temp = group.getTemperature();
+                        }
 
-                String batStr = battery != -1 ? String.valueOf(battery) + "%" : " - ";
-                String tempStr = temp != -1 ? String.valueOf(temp) + "°C" : " - ";
-                if (index == 1) {
-                    mTvCharge1.setText(batStr);
-                    mTvTemp1.setText(tempStr);
-                } else if (index == 2) {
-                    mTvCharge2.setText(batStr);
-                    mTvTemp2.setText(tempStr);
-                }
+                        String batStr = battery != -1 ? String.valueOf(battery) + "%" : " - ";
+                        String tempStr = temp != -1 ? String.valueOf(temp) + "°C" : " - ";
+                        if (index == 1) {
+                            mTvCharge1.setText(batStr);
+                            mTvTemp1.setText(tempStr);
+                        } else if (index == 2) {
+                            mTvCharge2.setText(batStr);
+                            mTvTemp2.setText(tempStr);
+                        }
+                    }
+
+                    sendEmptyMessageDelayed(0x110, 10000);
+                    break;
+                case 0x119:
+                    //关闭所有连接
+                    if (BleService.getInstance() != null) {
+                        BleService.getInstance().releaseAllDevices();
+                    }
+                    break;
             }
-
-            sendEmptyMessageDelayed(0x110, 10000);
         }
     }
 }
