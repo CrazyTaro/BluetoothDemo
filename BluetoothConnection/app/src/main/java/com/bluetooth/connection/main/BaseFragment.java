@@ -3,7 +3,7 @@ package com.bluetooth.connection.main;
 import android.support.annotation.NonNull;
 import android.support.v4.app.Fragment;
 
-import com.bluetooth.GroupData;
+import com.bluetooth.connection.GroupData;
 import com.bluetooth.connection.LineData;
 
 /**

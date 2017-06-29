@@ -6,6 +6,9 @@ import android.os.Handler;
 import android.os.Message;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.text.TextUtils;
+import android.util.Log;
+import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -14,13 +17,18 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.bluetooth.GroupData;
+import com.bluetooth.connection.GroupData;
 import com.bluetooth.connection.LineData;
 import com.bluetooth.connection.R;
 import com.bluetooth.connection.main.core.BleService;
+import com.bluetooth.connection.main.core.IBleService;
 import com.bluetooth.connection.tool.BleDemoActivity;
 
+import java.util.List;
 import java.util.Map;
+import java.util.UUID;
+
+import static java.lang.Integer.parseInt;
 
 /**
  * Created by taro on 2017/6/13.
@@ -63,6 +71,31 @@ public class SettingFragment extends BaseFragment implements View.OnClickListene
 
         mMainAct = (MainActivity) getActivity();
         mHandler = new UpdateHandler();
+
+        mEtSpeed.setOnKeyListener(new View.OnKeyListener() {
+            @Override
+            public boolean onKey(View v, int keyCode, KeyEvent event) {
+                if (event.getAction() == KeyEvent.ACTION_DOWN
+                        && keyCode == KeyEvent.KEYCODE_ENTER) {
+                    String text = mEtSpeed.getText().toString();
+                    boolean isSent = false;
+                    if (TextUtils.isDigitsOnly(text)) {
+                        int result = Integer.parseInt(text);
+                        if (result >= 0 && result <= 100) {
+                            sendCmd(new byte[]{(byte) result});
+                            isSent = true;
+                        }
+                    }
+
+                    if (!isSent) {
+                        Toast.makeText(getActivity(), "数据不合法", Toast.LENGTH_LONG).show();
+                    }
+                    return true;
+                } else {
+                    return false;
+                }
+            }
+        });
         return contentView;
     }
 
@@ -89,6 +122,9 @@ public class SettingFragment extends BaseFragment implements View.OnClickListene
             switch (v.getId()) {
                 case R.id.iv_setting_switch:
                     //关闭硬件
+                    //先断开所有连接
+                    BleService.getInstance().releaseAllDevices();
+                    sendCmd(new byte[]{0x00});
                     break;
                 case R.id.tv_setting_start:
                     //开始扫描
@@ -102,6 +138,26 @@ public class SettingFragment extends BaseFragment implements View.OnClickListene
             }
         } else {
             Toast.makeText(getContext(), "蓝牙服务未连接上,请稍后重试", Toast.LENGTH_LONG).show();
+        }
+    }
+
+    private void sendCmd(byte[] btyes) {
+        if (btyes == null) {
+            return;
+        }
+
+        IBleService instance = BleService.getInstance();
+        List<String> list = instance.getDevicesAddr();
+        for (String addr : list) {
+            UUID writeId = BleService.getInstance().getDeviceUUID(addr).get("write");
+            UUID serviceId = instance.getDeviceUUID(addr).get("service");
+            if (serviceId != null && writeId != null) {
+                //通知发送数据
+                if (!BleService.getInstance().write(addr, serviceId.toString(), writeId.toString(), btyes)) {
+                    Log.e("ble", addr + "|写入队列失败");
+                    //写入失败
+                }
+            }
         }
     }
 

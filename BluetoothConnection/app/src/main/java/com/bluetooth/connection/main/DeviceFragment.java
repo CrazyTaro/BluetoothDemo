@@ -12,13 +12,11 @@ import android.widget.CompoundButton;
 import android.widget.RadioGroup;
 import android.widget.TextView;
 
-import com.bluetooth.GroupData;
 import com.bluetooth.connection.BlueView;
 import com.bluetooth.connection.BluetoothHelper;
+import com.bluetooth.connection.GroupData;
 import com.bluetooth.connection.LineData;
 import com.bluetooth.connection.R;
-
-import static android.R.attr.tag;
 
 /**
  * Created by taro on 2017/6/13.
@@ -32,6 +30,8 @@ public class DeviceFragment extends BaseFragment implements CompoundButton.OnChe
     CheckBox mCbShowY;
     CheckBox mCbShowZ;
     UIRunnable mUiRunnable;
+
+    String[] mFormats;
 
     @Nullable
     @Override
@@ -47,6 +47,11 @@ public class DeviceFragment extends BaseFragment implements CompoundButton.OnChe
         mCbShowY.setOnCheckedChangeListener(this);
         mCbShowZ.setOnCheckedChangeListener(this);
         mRgType.setOnCheckedChangeListener(this);
+
+        mFormats = new String[3];
+        mFormats[0] = "X %.2f";
+        mFormats[1] = "Y %.2f";
+        mFormats[2] = "Z %.2f";
 
         mUiRunnable = new UIRunnable();
         return contentView;
@@ -97,10 +102,9 @@ public class DeviceFragment extends BaseFragment implements CompoundButton.OnChe
     private void setAxisText(@NonNull LineData item) {
         float[] axis = item.getAxisValue(mBlueView.getDataTypeMask());
         if (axis != null) {
-            String format = "%.2f";
-            mCbShowX.setText(String.format(format, axis[0]));
-            mCbShowY.setText(String.format(format, axis[1]));
-            mCbShowZ.setText(String.format(format, axis[2]));
+            mCbShowX.setText(String.format(mFormats[0], axis[0]));
+            mCbShowY.setText(String.format(mFormats[1], axis[1]));
+            mCbShowZ.setText(String.format(mFormats[2], axis[2]));
         } else {
             mCbShowX.setText(" - ");
             mCbShowY.setText(" - ");
