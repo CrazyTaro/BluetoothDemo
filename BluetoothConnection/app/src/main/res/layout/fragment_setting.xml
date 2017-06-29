@@ -29,6 +29,7 @@
             android:background="@drawable/shape_tp_black_bound_rect"
             android:gravity="center"
             android:hint="0~100"
+            android:imeOptions="actionDone"
             android:inputType="number"/>
 
         <TextView

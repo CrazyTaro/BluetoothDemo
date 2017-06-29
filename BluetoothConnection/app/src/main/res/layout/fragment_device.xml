@@ -9,7 +9,7 @@
     <com.bluetooth.connection.BlueView
         android:id="@+id/bv_device_chart"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="250dp"
         app:degreeHeight="2"/>
 
     <TextView
