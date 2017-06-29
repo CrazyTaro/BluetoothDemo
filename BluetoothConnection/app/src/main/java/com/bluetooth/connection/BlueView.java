@@ -12,8 +12,6 @@ import android.util.AttributeSet;
 import android.util.Log;
 import android.view.View;
 
-import com.bluetooth.GroupData;
-
 import java.util.List;
 
 /**
@@ -28,7 +26,6 @@ public class BlueView extends View {
     private Paint mPaint;
     private GroupData mDatas;
     private Path[] mPaths;
-    private String mDrawAddr = "80:30:DC:03:D1:95";
     private long mIntervalTimeStamp;
     private long mFirstTimeStamp;
     private int mDegreeHeight = 1;
@@ -130,14 +127,6 @@ public class BlueView extends View {
         mDescDrawListener = listener;
     }
 
-    public void setDeviceAddr(String addr) {
-        mDrawAddr = addr;
-    }
-
-    public String getDisplayDevice() {
-        return mDrawAddr;
-    }
-
     public void setDataTypeMask(int typeMask) {
         mTypeMask = typeMask;
     }
@@ -154,15 +143,18 @@ public class BlueView extends View {
         mDatas = data;
     }
 
-    private int getDrawValue(float value, int drawHeight) {
-        return (int) ((180 - value) / 360 * drawHeight + 20);
+    private float getDrawValue(float value, float total, float drawHeight, float startY) {
+//        return (int) ((180 - value) / 360 * drawHeight + 20);
+        return (1 - (value * 2 / total)) * drawHeight / 2 + startY;
     }
+
 
     @Override
     protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
-        int width = getDefaultSize(getSuggestedMinimumWidth(), widthMeasureSpec);
-        int height = 20 + 20 + 360 * mDegreeHeight;
-        setMeasuredDimension(width, height);
+//        int width = getDefaultSize(getSuggestedMinimumWidth(), widthMeasureSpec);
+//        int height = 20 + 20 + 360 * mDegreeHeight;
+//        setMeasuredDimension(width, height);
+        super.onMeasure(widthMeasureSpec, heightMeasureSpec);
     }
 
     @Override
@@ -172,35 +164,97 @@ public class BlueView extends View {
         int width = getWidth();
         int height = getHeight() - 40;
 
+        if (height < 0 || width < 0) {
+            return;
+        }
+
         mPaint.setStrokeWidth(1);
         mPaint.setColor(Color.BLACK);
-        //计算绘制区域的高度,除去标题底栏文本等
-        int canvasHeight = 360 * mDegreeHeight + 20;
-        //计算每行的高度
-        int lineHeight = 12 * mDegreeHeight;
-        //绘制水平分隔线
-        for (int i = 20; i <= canvasHeight; i += lineHeight) {
-            //360度分为5份进行绘制,每72度一个大格
-            if ((i - 20) % (lineHeight * 6) == 0) {
-                mPaint.setTextSize(15 + mDegreeHeight);
+
+        float total = 180 * 2, result = 0;
+        float lineHeight = height / 20f;
+        //中线
+        float begin = height / 2f;
+        float drawX, drawY, startX, startY;
+        String desc;
+        startX = 0;
+        startY = 20;
+
+        if (mDatas != null) {
+            total = mDatas.getMaxValue(mTypeMask) * 2;
+            if (total <= 0) {
+                total = 180 * 2;
+            }
+        }
+
+        mPaint.setAlpha(102);
+        mPaint.setTextSize(lineHeight);
+        for (int i = 0; i < 10; i++) {
+            if ((i & 1) == 0) {
+                //绘制文本
                 mPaint.setAlpha(255);
-                //绘制纵坐标文本
+                //上半部分的文本
+                drawY = begin - i * lineHeight;
+                //结果应该为正数
+                result = Math.abs(drawY / height * total - total / 2);
                 if (mDescDrawListener != null) {
-                    //文本生成回调,0-360的距离
-                    canvas.drawText(String.valueOf(mDescDrawListener.getDescValue((i - 20) / mDegreeHeight)), 0, i + 20, mPaint);
+                    desc = mDescDrawListener.getDescValue(result);
                 } else {
-                    //默认-180到180
-                    canvas.drawText(String.valueOf(180 - ((i - 20) / mDegreeHeight)), 0, i + 20, mPaint);
+                    desc = String.format("%.1f", result);
+                }
+                if (desc != null) {
+                    canvas.drawText(desc, lineHeight, drawY + startY, mPaint);
+                }
+
+                //下半部分的文本
+                drawY = begin + i * lineHeight + startY;
+                //结果应该为负数
+                result = total / 2 - drawY / height * total;
+                if (mDescDrawListener != null) {
+                    desc = mDescDrawListener.getDescValue(result);
+                } else {
+                    desc = String.format("%.1f", result);
+                }
+                if (desc != null) {
+                    canvas.drawText(desc, lineHeight, drawY + startY, mPaint);
                 }
             } else {
                 mPaint.setAlpha(102);
             }
-            canvas.drawLine(0, i, width, i, mPaint);
+
+            //上半部分的线
+            drawY = begin - i * lineHeight;
+            canvas.drawLine(0, drawY + startY, width, drawY + startY, mPaint);
+            //下半部分的线
+            drawY = begin + i * lineHeight;
+            canvas.drawLine(0, drawY + startY, width, drawY + startY, mPaint);
         }
 
+//        //计算绘制区域的高度,除去标题底栏文本等
+//        int canvasHeight = 360 * mDegreeHeight + 20;
+//        //计算每行的高度
+//        int lineHeight = 12 * mDegreeHeight;
+//        //绘制水平分隔线
+//        for (int i = 20; i <= canvasHeight; i += lineHeight) {
+//            //360度分为5份进行绘制,每72度一个大格
+//            if ((i - 20) % (lineHeight * 6) == 0) {
+//                mPaint.setTextSize(15 + mDegreeHeight);
+//                mPaint.setAlpha(255);
+//                //绘制纵坐标文本
+//                if (mDescDrawListener != null) {
+//                    //文本生成回调,0-360的距离
+//                    canvas.drawText(String.valueOf(mDescDrawListener.getDescValue((i - 20) / mDegreeHeight)), 0, i + 20, mPaint);
+//                } else {
+//                    //默认-180到180
+//                    canvas.drawText(String.valueOf(180 - ((i - 20) / mDegreeHeight)), 0, i + 20, mPaint);
+//                }
+//            } else {
+//                mPaint.setAlpha(102);
+//            }
+//            canvas.drawLine(0, i, width, i, mPaint);
+//        }
+
         //绘制线条标识
-
-
         mPaint.setStyle(Paint.Style.STROKE);
         mPaint.setAlpha(255);
         //绘制数据线
@@ -211,7 +265,7 @@ public class BlueView extends View {
 
             if (data != null && data.size() > 0) {
                 int i = 1;
-                int pos = 0;
+                float pos = 0;
                 long lastTime = 0;
                 width -= mTimeUnitWidth;
                 mIntervalTimeStamp = 0;
@@ -227,11 +281,11 @@ public class BlueView extends View {
                 float z = value.getValue(mTypeMask, BluetoothHelper.TYPE_AXIS_Z);
 
                 mFirstTimeStamp = value.getTime();
-                pos = getDrawValue(x, height);
+                pos = getDrawValue(x, total, height, startY);
                 mPaths[0].moveTo(width, pos);
-                pos = getDrawValue(y, height);
+                pos = getDrawValue(y, total, height, startY);
                 mPaths[1].moveTo(width, pos);
-                pos = getDrawValue(z, height);
+                pos = getDrawValue(z, total, height, startY);
                 mPaths[2].moveTo(width, pos);
 
                 //数据大于1时进行数据加载
@@ -251,11 +305,11 @@ public class BlueView extends View {
                         y = value.getValue(mTypeMask, BluetoothHelper.TYPE_AXIS_Y);
                         z = value.getValue(mTypeMask, BluetoothHelper.TYPE_AXIS_Z);
                         //创建数据源并连接
-                        pos = getDrawValue(x, height);
+                        pos = getDrawValue(x, total, height, startY);
                         mPaths[0].lineTo(width, pos);
-                        pos = getDrawValue(y, height);
+                        pos = getDrawValue(y, total, height, startY);
                         mPaths[1].lineTo(width, pos);
-                        pos = getDrawValue(z, height);
+                        pos = getDrawValue(z, total, height, startY);
                         mPaths[2].lineTo(width, pos);
 
                         long interval = Math.abs(value.getTime() - mIntervalTimeStamp);
@@ -264,7 +318,7 @@ public class BlueView extends View {
                             mIntervalTimeStamp = value.getTime();
                             mPaint.setColor(Color.BLACK);
                             mPaint.setStrokeWidth(1);
-                            canvas.drawLine(width, canvasHeight, width, canvasHeight + 5, mPaint);
+                            canvas.drawLine(width, height + startY, width, height + startX + 5, mPaint);
                             canvas.drawText(String.format("%1$.02f", Math.abs((value.getTime() - mFirstTimeStamp)) / 1000f), width, getHeight(), mPaint);
                         }
 
@@ -295,24 +349,26 @@ public class BlueView extends View {
         }
 
 
-        float lineStartX = screenWidth - 150;
-        float lineStartY = 50;
-        float lineWidth = 5;
-        //判断是否需要绘制X轴数据
-        if ((mHideMask & MASK_HIDE_X) == 0) {
-            drawLineStatus(canvas, lineStartX, lineStartY, Color.RED, lineWidth, "X");
-            lineStartY += 50;
+        if (mTypeMask != BluetoothHelper.TYPE_DATA_INCLUDED_ANGLE) {
+            //非夹角时绘制标线
+            float lineStartX = screenWidth - 150;
+            float lineStartY = 50;
+            float lineWidth = 5;
+            //判断是否需要绘制X轴数据
+            if ((mHideMask & MASK_HIDE_X) == 0) {
+                drawLineStatus(canvas, lineStartX, lineStartY, Color.RED, lineWidth, "X");
+                lineStartY += 50;
+            }
+            //判断是否需要绘制Y轴数据
+            if ((mHideMask & MASK_HIDE_Y) == 0) {
+                drawLineStatus(canvas, lineStartX, lineStartY, Color.GREEN, lineWidth, "Y");
+                lineStartY += 50;
+            }
+            //判断是否需要绘制Z轴数据
+            if ((mHideMask & MASK_HIDE_Z) == 0) {
+                drawLineStatus(canvas, lineStartX, lineStartY, Color.BLUE, lineWidth, "Z");
+            }
         }
-        //判断是否需要绘制Y轴数据
-        if ((mHideMask & MASK_HIDE_Y) == 0) {
-            drawLineStatus(canvas, lineStartX, lineStartY, Color.GREEN, lineWidth, "Y");
-            lineStartY += 50;
-        }
-        //判断是否需要绘制Z轴数据
-        if ((mHideMask & MASK_HIDE_Z) == 0) {
-            drawLineStatus(canvas, lineStartX, lineStartY, Color.BLUE, lineWidth, "Z");
-        }
-
     }
 
     private void drawLineStatus(Canvas canvas, float startX, float startY, int lineColor, float lineWidth, @NonNull String lineText) {
@@ -329,6 +385,6 @@ public class BlueView extends View {
     }
 
     public interface OnDegreeValueDescDraw {
-        public String getDescValue(int degreeFromFirst);
+        public String getDescValue(float degreeFromFirst);
     }
 }
