@@ -1,5 +1,6 @@
 package com.bluetooth.connection;
 
+import android.content.Intent;
 import android.support.annotation.NonNull;
 import android.support.v4.util.SparseArrayCompat;
 import android.util.Log;
@@ -17,6 +18,7 @@ public class BluetoothHelper {
     public static final int TYPE_GROUP_0D = 1;
     public static final int TYPE_GROUP_0E = 2;
     public static final int TYPE_GROUP_0F = 3;
+    public static final int TYPE_GROUP_ANGLE = 4;
 
     public static final int TYPE_DATA_ACC = 0;
     public static final int TYPE_DATA_MAG = 1;
@@ -27,15 +29,23 @@ public class BluetoothHelper {
     public static final int TYPE_DATA_GRV = 6;
     public static final int TYPE_EXTRA_TEMPERATURE = 7;
     public static final int TYPE_EXTRA_BATTERY = 8;
-
-    public static final int TYPE_DATA_OTHER = 7;
+    //夹角
+    public static final int TYPE_DATA_INCLUDED_ANGLE = 9;
 
     public static final int TYPE_AXIS_X = 0;
     public static final int TYPE_AXIS_Y = 1;
     public static final int TYPE_AXIS_Z = 2;
     public static final int TYPE_AXIS_W = 3;
 
+    //夹角
+    public static final int TYPE_AXIS_ANGLE_INCLUDED = TYPE_AXIS_X;
+    //角度1
+    public static final int TYPE_AXIS_ANGLE_ONE = TYPE_AXIS_Y;
+    //角度2
+    public static final int TYPE_AXIS_ANGLE_SECOND = TYPE_AXIS_Z;
+
     public static final SparseArrayCompat<Integer> K_MAP = new SparseArrayCompat<Integer>(8);
+    public static final SparseArrayCompat<Integer> LIMIT = new SparseArrayCompat<>(8);
 
     static {
         K_MAP.put(TYPE_DATA_ACC, 1);
@@ -46,6 +56,14 @@ public class BluetoothHelper {
         K_MAP.put(TYPE_DATA_QUA, 1 << 14);
         K_MAP.put(TYPE_DATA_LIA, 1);
         K_MAP.put(TYPE_DATA_GRV, 1);
+
+        LIMIT.put(TYPE_DATA_ACC, 32768);
+        LIMIT.put(TYPE_DATA_MAG, 2048);
+        LIMIT.put(TYPE_DATA_GYR, 2048);
+        LIMIT.put(TYPE_DATA_EUL, 180);
+        LIMIT.put(TYPE_DATA_QUA, 2);
+        LIMIT.put(TYPE_DATA_LIA, 32768);
+        LIMIT.put(TYPE_DATA_GRV, 32768);
     }
 
     public static LineData collectByte(byte[] bytes) {
@@ -111,6 +129,18 @@ public class BluetoothHelper {
         computeValue(lineData.mData[1], bytes, begin, K_MAP.get(TYPE_DATA_GRV), false);
         begin += 6;
         lineData.mExtra = bytes[begin] & 0xFF;
+        return lineData.build();
+    }
+
+    public static LineData computeLineAngle(@NonNull float[] angle1, @NonNull float[] angle2) {
+        float value = computeIncludedAngleValue(angle1, angle2);
+        LineData lineData = new LineData(TYPE_GROUP_ANGLE);
+        //夹角
+        lineData.mData[0][0] = value;
+        //角度1
+        lineData.mData[0][1] = angle1[2];
+        //角度2
+        lineData.mData[0][2] = angle2[2];
         return lineData.build();
     }
 
@@ -193,6 +223,21 @@ public class BluetoothHelper {
         return false;
     }
 
+    public static float computeIncludedAngleValue(@NonNull float[] angle1, @NonNull float[] angle2) {
+        float z1 = angle1[2], z2 = angle2[2];
+        float y1 = angle1[1], y2 = angle2[1];
+        float result = 0;
+        if (z1 * z2 > 0) {
+            result = Math.abs(z1 - z2);
+        } else {
+            result = 360 - Math.abs(z1 - z2);
+        }
+        if (result > 180) {
+            result = 360 - result;
+        }
+        return result + (y1 + y2) * 0.06f;
+    }
+
     /**
      * 根据z轴数据计算夹角
      *
@@ -201,12 +246,16 @@ public class BluetoothHelper {
      * @return
      */
     public static float computeIncludedAngleValue(float z, float z2) {
-        float result = z * z2;
-        if (result > 0) {
-            return Math.abs(z - z2);
+        float result = 0;
+        if (z * z2 > 0) {
+            result = Math.abs(z - z2);
         } else {
-            return 360 - Math.abs(z - z2);
+            result = 360 - Math.abs(z - z2);
         }
+        if (result > 180) {
+            result = 360 - result;
+        }
+        return result;
     }
 
     /**
