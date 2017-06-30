@@ -2,6 +2,7 @@ package com.bluetooth.connection.main;
 
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
+import android.bluetooth.BluetoothGatt;
 import android.bluetooth.BluetoothGattCharacteristic;
 import android.bluetooth.BluetoothGattService;
 import android.bluetooth.BluetoothManager;
@@ -36,6 +37,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
+import static android.R.id.message;
 import static com.bluetooth.connection.BluetoothHelper.TYPE_GROUP_ANGLE;
 
 /**
@@ -155,9 +157,14 @@ public class MainActivity extends AppCompatActivity {
 
                     @Override
                     public boolean onWriteCallback(String addr, String serviceId, String characterId, byte[] value, boolean isSuccess) {
-//                        Log.e("ble", addr + "|写入0x" + BluetoothHelper.bytesToHex(value) + (isSuccess ? "成功" : "失败"));
-                        Toast.makeText(MainActivity.this, String.format("设备:%s 写入指令 0x%s %s", addr, BluetoothHelper.bytesToHex(value), (isSuccess ? "成功" : "失败")),
-                                Toast.LENGTH_LONG).show();
+                        Log.e("ble_write", addr + "|写入0x" + BluetoothHelper.bytesToHex(value) + (isSuccess ? "成功" : "失败"));
+                        if (mHandler != null) {
+                            String message = "设备 " + addr + " 写入指令 0x" + BluetoothHelper.bytesToHex(value) + (isSuccess ? "成功" : "失败");
+                            Message msg = Message.obtain();
+                            msg.what = 0x120;
+                            msg.obj = message;
+                            mHandler.sendMessage(msg);
+                        }
                         return true;
                     }
                 });
@@ -227,30 +234,27 @@ public class MainActivity extends AppCompatActivity {
                     }
 
                     @Override
-                    public void onDiscoveryServiceFinished() {
+                    public void onDiscoveryServiceFinished(String addr, BluetoothGatt gatt) {
                         IBleService instance = BleService.getInstance();
-                        List<String> list = instance.getDevicesAddr();
-                        for (String addr : list) {
-                            UUID writeId = BleService.getInstance().getDeviceUUID(addr).get("write");
-                            UUID serviceId = instance.getDeviceUUID(addr).get("service");
-                            UUID notifyId = instance.getDeviceUUID(addr).get("notify");
-                            if (serviceId != null && notifyId != null) {
-                                if (!instance.notify(addr, serviceId.toString(), notifyId.toString(), true)) {
-                                    //开启通知失败
-                                    Log.e("ble", addr + "|开启通知失败");
-                                    Message msg = Message.obtain();
-                                    msg.what = 0x13;
-                                    msg.obj = addr;
-                                    msg.arg1 = 3;
-                                    mHandler.sendMessageDelayed(msg, 100);
-                                }
+                        UUID writeId = BleService.getInstance().getDeviceUUID(addr).get("write");
+                        UUID serviceId = instance.getDeviceUUID(addr).get("service");
+                        UUID notifyId = instance.getDeviceUUID(addr).get("notify");
+                        if (serviceId != null && notifyId != null) {
+                            if (!instance.notify(addr, serviceId.toString(), notifyId.toString(), true)) {
+                                //开启通知失败
+                                Log.e("ble", addr + "|开启通知失败");
+                                Message msg = Message.obtain();
+                                msg.what = 0x13;
+                                msg.obj = addr;
+                                msg.arg1 = 3;
+                                mHandler.sendMessageDelayed(msg, 100);
                             }
-                            if (serviceId != null && writeId != null) {
-                                //通知发送数据
-                                if (!BleService.getInstance().write(addr, serviceId.toString(), writeId.toString(), new byte[]{0x66})) {
-                                    Log.e("ble", addr + "|写入队列失败");
-                                    //写入失败
-                                }
+                        }
+                        if (serviceId != null && writeId != null) {
+                            //通知发送数据
+                            if (!BleService.getInstance().write(addr, serviceId.toString(), writeId.toString(), new byte[]{0x66})) {
+                                Log.e("ble_write", addr + "|写入队列失败");
+                                //写入失败
                             }
                         }
                     }
@@ -329,6 +333,10 @@ public class MainActivity extends AppCompatActivity {
                         newMsg.arg1 = times;
                         sendMessageDelayed(newMsg, 100);
                     }
+                    break;
+                case 0x120:
+                    String message = String.valueOf(msg.obj);
+                    Toast.makeText(MainActivity.this, message, Toast.LENGTH_SHORT).show();
                     break;
             }
         }

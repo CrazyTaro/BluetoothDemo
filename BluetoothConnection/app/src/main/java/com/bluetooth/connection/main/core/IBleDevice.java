@@ -1,6 +1,7 @@
 package com.bluetooth.connection.main.core;
 
 import android.bluetooth.BluetoothDevice;
+import android.bluetooth.BluetoothGatt;
 import android.bluetooth.BluetoothGattCharacteristic;
 import android.bluetooth.BluetoothGattService;
 import android.support.annotation.NonNull;
@@ -33,5 +34,5 @@ public interface IBleDevice {
 
     void onAllDevicesRelease();
 
-    void onDiscoveryServiceFinished();
+    void onDiscoveryServiceFinished(String addr, BluetoothGatt gatt);
 }

@@ -258,15 +258,19 @@ public class BleService extends Service implements IBleService {
 
     @Override
     public boolean write(String addr, String serviceUUid, String characterUUid, byte[] bytes) {
+        Log.e("ble_write", "尝试 " + addr + " 写入指令 0x" + BluetoothHelper.bytesToHex(bytes));
         BleWrite write = BleWrite.createWriter(addr, serviceUUid, characterUUid, bytes);
         if (write != null) {
-            if (mIsWriting) {
-                if (mWriteQueue == null) {
-                    mWriteQueue = new LinkedBlockingQueue<>();
+            synchronized (this) {
+                if (mIsWriting) {
+                    if (mWriteQueue == null) {
+                        mWriteQueue = new LinkedBlockingQueue<>();
+                    }
+                    mWriteQueue.add(write);
+                    Log.e("ble_write", "进入排队待写状态");
+                } else {
+                    writeInner(write);
                 }
-                mWriteQueue.add(write);
-            } else {
-                writeInner(write);
             }
             return true;
         } else {
@@ -384,7 +388,9 @@ public class BleService extends Service implements IBleService {
                         mIsWriting = true;
                         character.setWriteType(BluetoothGattCharacteristic.WRITE_TYPE_DEFAULT);
                         character.setValue(write.mValue);
-                        return obj.mGatt.writeCharacteristic(character);
+                        boolean result = obj.mGatt.writeCharacteristic(character);
+                        Log.e("ble_write", "写入返回状态:" + result);
+                        return result;
                     }
                 }
             }
@@ -457,11 +463,14 @@ public class BleService extends Service implements IBleService {
     }
 
     private void tryWriteQueue() {
-        if (mWriteQueue != null && mWriteQueue.size() > 0) {
-            while (mWriteQueue.size() > 0) {
-                BleWrite write = mWriteQueue.poll();
-                if (writeInner(write)) {
-                    return;
+        synchronized (this) {
+            if (mWriteQueue != null && mWriteQueue.size() > 0) {
+                while (mWriteQueue.size() > 0) {
+                    BleWrite write = mWriteQueue.poll();
+                    if (writeInner(write)) {
+                        Log.e("ble_write", write.mAddr + "读取队列数据写入0x" + BluetoothHelper.bytesToHex(write.mValue));
+                        return;
+                    }
                 }
             }
         }
@@ -632,7 +641,7 @@ public class BleService extends Service implements IBleService {
                 }
             }
 
-            mDeviceCallback.onDiscoveryServiceFinished();
+            mDeviceCallback.onDiscoveryServiceFinished(addr, gatt);
         }
 
         @Override
@@ -643,6 +652,7 @@ public class BleService extends Service implements IBleService {
             String serviceId = service.getUuid().toString();
             String characterId = characteristic.getUuid().toString();
             byte[] value = characteristic.getValue();
+            Log.e("ble_write", "写入回调:" + addr + ",写入指令:0x" + BluetoothHelper.bytesToHex(value));
             if (mDataCallback != null) {
                 mIsWriting = false;
                 if (mDataCallback.onWriteCallback(addr, serviceId, characterId, value, status == BluetoothGatt.GATT_SUCCESS)) {
