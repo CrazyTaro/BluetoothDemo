@@ -12,6 +12,7 @@ import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.inputmethod.EditorInfo;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -72,11 +73,12 @@ public class SettingFragment extends BaseFragment implements View.OnClickListene
         mMainAct = (MainActivity) getActivity();
         mHandler = new UpdateHandler();
 
-        mEtSpeed.setOnKeyListener(new View.OnKeyListener() {
+        mEtSpeed.setOnEditorActionListener(new TextView.OnEditorActionListener() {
             @Override
-            public boolean onKey(View v, int keyCode, KeyEvent event) {
-                if (event.getAction() == KeyEvent.ACTION_DOWN
-                        && keyCode == KeyEvent.KEYCODE_ENTER) {
+            public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
+                if (actionId == EditorInfo.IME_ACTION_DONE
+                        || (event != null && event.getAction() == KeyEvent.ACTION_DOWN
+                        && event.getKeyCode() == KeyEvent.KEYCODE_ENTER)) {
                     String text = mEtSpeed.getText().toString();
                     boolean isSent = false;
                     if (TextUtils.isDigitsOnly(text)) {
@@ -84,6 +86,7 @@ public class SettingFragment extends BaseFragment implements View.OnClickListene
                         if (result >= 0 && result <= 100) {
                             sendCmd(new byte[]{(byte) result});
                             isSent = true;
+                            Toast.makeText(getActivity(), "正在写入数据,请稍等", Toast.LENGTH_LONG).show();
                         }
                     }
 
@@ -124,7 +127,6 @@ public class SettingFragment extends BaseFragment implements View.OnClickListene
                     //关闭硬件
                     //再延时断开所有连接(不管是否成功关闭)
                     sendCmd(new byte[]{0x00});
-                    mHandler.sendEmptyMessageDelayed(0x119, 5000);
                     break;
                 case R.id.tv_setting_start:
                     //开始扫描
@@ -145,7 +147,6 @@ public class SettingFragment extends BaseFragment implements View.OnClickListene
         if (btyes == null) {
             return;
         }
-
         IBleService instance = BleService.getInstance();
         List<String> list = instance.getDevicesAddr();
         for (String addr : list) {
@@ -154,7 +155,7 @@ public class SettingFragment extends BaseFragment implements View.OnClickListene
             if (serviceId != null && writeId != null) {
                 //通知发送数据
                 if (!BleService.getInstance().write(addr, serviceId.toString(), writeId.toString(), btyes)) {
-                    Log.e("ble", addr + "|写入队列失败");
+                    Log.e("ble_write", addr + "|写入队列失败");
                     //写入失败
                 }
             }
