@@ -27,7 +27,7 @@
                 android:text="Simple"
                 android:textSize="12sp"/>
 
-            <com.bluetooth.connection.BlueView
+            <com.bluetooth.connection.main.view.BlueView
                 android:id="@+id/bv_ui_first"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"/>
@@ -40,7 +40,7 @@
                 android:padding="10dp"
                 android:textSize="12sp"/>
 
-            <com.bluetooth.connection.BlueView
+            <com.bluetooth.connection.main.view.BlueView
                 android:id="@+id/bv_ui_second"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"/>
@@ -53,7 +53,7 @@
                 android:padding="10dp"
                 android:textSize="12sp"/>
 
-            <com.bluetooth.connection.BlueView
+            <com.bluetooth.connection.main.view.BlueView
                 android:id="@+id/bv_ui_z"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"/>

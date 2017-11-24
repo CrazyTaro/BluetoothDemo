@@ -2,9 +2,6 @@ package com.bluetooth.connection.main;
 
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
-import android.bluetooth.BluetoothGatt;
-import android.bluetooth.BluetoothGattCharacteristic;
-import android.bluetooth.BluetoothGattService;
 import android.bluetooth.BluetoothManager;
 import android.content.ComponentName;
 import android.content.Intent;
@@ -13,7 +10,6 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Message;
-import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.design.widget.TabLayout;
 import android.support.v4.util.ArrayMap;
@@ -22,23 +18,16 @@ import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.widget.Toast;
 
-import com.bluetooth.connection.BluetoothHelper;
-import com.bluetooth.connection.GroupData;
-import com.bluetooth.connection.LineData;
 import com.bluetooth.connection.R;
-import com.bluetooth.connection.Test;
-import com.bluetooth.connection.main.core.BleService;
-import com.bluetooth.connection.main.core.IBleDevice;
-import com.bluetooth.connection.main.core.IBleService;
-import com.bluetooth.connection.main.core.OnOperationCallback;
+import com.taro.bleservice.core.BleService;
+import com.taro.bleservice.core.BluetoothHelper;
+import com.taro.bleservice.core.OnOperationCallback;
+import com.taro.bleservice.entity.GroupData;
+import com.taro.bleservice.entity.LineData;
 
-import java.util.Collection;
-import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
-import static android.R.id.message;
-import static com.bluetooth.connection.BluetoothHelper.TYPE_GROUP_ANGLE;
 
 /**
  * Created by taro on 2017/6/13.
@@ -61,8 +50,6 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
-        Test.compute();
 
         mVpContent = (ViewPager) findViewById(R.id.vp_content);
         mTlTab = (TabLayout) findViewById(R.id.tl_tab);
@@ -143,7 +130,7 @@ public class MainActivity extends AppCompatActivity {
                                         mAngleData = new GroupData();
                                     }
                                     //保存计算结果
-                                    mAngleData.addNewData(TYPE_GROUP_ANGLE, angleLine);
+                                    mAngleData.addNewData(BluetoothHelper.TYPE_GROUP_ANGLE, angleLine);
 
                                     //通知界面更新
                                     BaseFragment angleFragment = mPageAdapter.getItem(3);
@@ -166,97 +153,6 @@ public class MainActivity extends AppCompatActivity {
                             mHandler.sendMessage(msg);
                         }
                         return true;
-                    }
-                });
-
-                BleService.getInstance().setDeviceCallback(new IBleDevice() {
-                    @Override
-                    public boolean isDeviceValid(BluetoothDevice device, int rssi, byte[] scanRecord) {
-                        String name = device.getName();
-                        String addr = device.getAddress();
-                        return name != null && name.contains("Yiwei");
-                    }
-
-                    @Override
-                    public boolean isCharacterValid(BluetoothGattCharacteristic character, boolean isNotify, boolean isRead, boolean isWrite) {
-                        UUID uuid = character.getUuid();
-                        String id = uuid.toString();
-                        if (isNotify && id.contains("fff4")) {
-                            return true;
-                        } else if (isWrite && id.contains("fff1")) {
-                            return true;
-                        } else {
-                            return false;
-                        }
-                    }
-
-                    @Override
-                    public boolean isServiceValid(BluetoothGattService service) {
-                        UUID uuid = service.getUuid();
-                        String id = uuid.toString();
-                        return id.contains("fff0");
-                    }
-
-                    @Override
-                    public boolean isStopScanAdvance(Collection<String> addr, int deviceCount) {
-                        return deviceCount >= 2;
-                    }
-
-                    @NonNull
-                    @Override
-                    public String getStoreUUIDTag(int from, UUID uuid) {
-                        String id = uuid.toString();
-                        if (id.contains("fff0") && from == UUID_FROM_SERVICE) {
-                            return "service";
-                        } else if (from == UUID_FROM_CHARACTER) {
-                            if (id.contains("fff1")) {
-                                return "write";
-                            } else if (id.contains("fff4")) {
-                                return "notify";
-                            }
-                        }
-                        return id;
-                    }
-
-                    @Override
-                    public boolean isConnectAfterScan(BluetoothDevice device, int rssi, byte[] scanRecord) {
-                        return true;
-                    }
-
-                    @Override
-                    public boolean isReconnectedWhenDisconnected(BluetoothDevice device) {
-                        return true;
-                    }
-
-                    @Override
-                    public void onAllDevicesRelease() {
-                        Log.e("devices", "release all devices");
-                    }
-
-                    @Override
-                    public void onDiscoveryServiceFinished(String addr, BluetoothGatt gatt) {
-                        IBleService instance = BleService.getInstance();
-                        UUID writeId = BleService.getInstance().getDeviceUUID(addr).get("write");
-                        UUID serviceId = instance.getDeviceUUID(addr).get("service");
-                        UUID notifyId = instance.getDeviceUUID(addr).get("notify");
-                        if (serviceId != null && notifyId != null) {
-                            if (!instance.notify(addr, serviceId.toString(), notifyId.toString(), true)) {
-                                //开启通知失败
-                                Log.e("ble", addr + "|开启通知失败");
-                                Message msg = Message.obtain();
-                                msg.what = 0x13;
-                                msg.obj = addr;
-                                msg.arg1 = 3;
-                                mHandler.sendMessageDelayed(msg, 100);
-                            }
-                        }
-                        if (serviceId != null && writeId != null) {
-                            //通知发送数据
-                            if (!BleService.getInstance().write(addr, serviceId.toString(), writeId.toString(), new byte[]{0x66})) {
-                                Log.e("ble_write", addr + "|写入队列失败");
-                                //写入失败
-                            }
-                        }
                     }
                 });
             }

@@ -8,12 +8,12 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
-import com.bluetooth.connection.BlueView;
-import com.bluetooth.connection.BluetoothHelper;
-import com.bluetooth.connection.GroupData;
-import com.bluetooth.connection.LineData;
+import com.bluetooth.connection.main.view.BlueView;
 import com.bluetooth.connection.R;
 import com.bluetooth.connection.main.view.DialoScaleView;
+import com.taro.bleservice.core.BluetoothHelper;
+import com.taro.bleservice.entity.GroupData;
+import com.taro.bleservice.entity.LineData;
 
 /**
  * Created by taro on 2017/6/13.

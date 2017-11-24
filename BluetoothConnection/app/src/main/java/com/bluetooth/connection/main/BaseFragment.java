@@ -3,8 +3,9 @@ package com.bluetooth.connection.main;
 import android.support.annotation.NonNull;
 import android.support.v4.app.Fragment;
 
-import com.bluetooth.connection.GroupData;
-import com.bluetooth.connection.LineData;
+import com.taro.bleservice.entity.GroupData;
+import com.taro.bleservice.entity.LineData;
+
 
 /**
  * Created by taro on 2017/6/19.

@@ -17,15 +17,6 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-        <activity
-            android:name=".UIActivity"
-            android:windowSoftInputMode="stateHidden">
-            <!--<intent-filter>-->
-            <!--<action android:name="android.intent.action.MAIN"/>-->
-
-            <!--<category android:name="android.intent.category.LAUNCHER"/>-->
-            <!--</intent-filter>-->
-        </activity>
 
         <activity
             android:name=".main.MainActivity"
@@ -37,10 +28,10 @@
             </intent-filter>
         </activity>
 
-        <service android:name=".main.core.BleService"/>
-
+        <service android:name="com.taro.bleservice.core.BleService"/>
 
         <activity android:name=".tool.BleDemoActivity"/>
+        <activity android:name=".main.DevicesActivity"/>
         <activity android:name=".tool.scan.AnyScanActivity"/>
         <activity android:name=".tool.scan.NameScanActivity"/>
         <activity android:name=".tool.scan.NameFuzzyScanActivity"/>

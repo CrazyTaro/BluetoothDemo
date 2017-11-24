@@ -18,18 +18,17 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.bluetooth.connection.GroupData;
-import com.bluetooth.connection.LineData;
 import com.bluetooth.connection.R;
-import com.bluetooth.connection.main.core.BleService;
-import com.bluetooth.connection.main.core.IBleService;
 import com.bluetooth.connection.tool.BleDemoActivity;
+import com.taro.bleservice.core.BleService;
+import com.taro.bleservice.core.IBleService;
+import com.taro.bleservice.entity.GroupData;
+import com.taro.bleservice.entity.LineData;
 
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
-import static java.lang.Integer.parseInt;
 
 /**
  * Created by taro on 2017/6/13.
@@ -46,6 +45,7 @@ public class SettingFragment extends BaseFragment implements View.OnClickListene
     TextView mTvStart;
     TextView mTvEnd;
     TextView mTvDebug;
+    TextView mTvDevice;
 
     MainActivity mMainAct;
     Handler mHandler;
@@ -64,11 +64,13 @@ public class SettingFragment extends BaseFragment implements View.OnClickListene
         mTvStart = (TextView) contentView.findViewById(R.id.tv_setting_start);
         mTvEnd = (TextView) contentView.findViewById(R.id.tv_setting_end);
         mTvDebug = (TextView) contentView.findViewById(R.id.tv_setting_debug);
+        mTvDevice = (TextView) contentView.findViewById(R.id.tv_setting_devices);
 
         mIvSwitch.setOnClickListener(this);
         mTvStart.setOnClickListener(this);
         mTvEnd.setOnClickListener(this);
         mTvDebug.setOnClickListener(this);
+        mTvDevice.setOnClickListener(this);
 
         mMainAct = (MainActivity) getActivity();
         mHandler = new UpdateHandler();
@@ -111,6 +113,16 @@ public class SettingFragment extends BaseFragment implements View.OnClickListene
     }
 
     @Override
+    public void onResume() {
+        super.onResume();
+        if (BleService.getInstance() != null
+                && BleService.getInstance().getConnectedDevByIndex().size() > 0) {
+            mHandler.removeMessages(0x110);
+            mHandler.sendEmptyMessage(0x110);
+        }
+    }
+
+    @Override
     public void notifyDataSetChanged(String addr, @NonNull GroupData datas, @NonNull LineData item) {
     }
 
@@ -121,8 +133,12 @@ public class SettingFragment extends BaseFragment implements View.OnClickListene
             return;
         }
 
+
         if (BleService.getInstance() != null) {
             switch (v.getId()) {
+                case R.id.tv_setting_devices:
+                    startActivity(new Intent(getActivity(), DevicesActivity.class));
+                    break;
                 case R.id.iv_setting_switch:
                     //关闭硬件
                     //再延时断开所有连接(不管是否成功关闭)
@@ -131,7 +147,6 @@ public class SettingFragment extends BaseFragment implements View.OnClickListene
                 case R.id.tv_setting_start:
                     //开始扫描
                     BleService.getInstance().scanDevices(50000);
-                    mHandler.sendEmptyMessageDelayed(0x110, 5000);
                     break;
                 case R.id.tv_setting_end:
                     //清除数据

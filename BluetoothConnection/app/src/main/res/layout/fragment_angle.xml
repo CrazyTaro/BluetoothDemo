@@ -19,7 +19,7 @@
         android:padding="@dimen/default_padding"
         android:text="角度一:0     角度二:90     夹角:90"/>
 
-    <com.bluetooth.connection.BlueView
+    <com.bluetooth.connection.main.view.BlueView
         android:id="@+id/bv_angle"
         android:layout_width="match_parent"
         android:layout_height="200dp"/>
